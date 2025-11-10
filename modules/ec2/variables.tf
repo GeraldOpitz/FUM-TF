@@ -1,33 +1,31 @@
 variable "name" {
-  description = "Nombre de la instancia"
+  description = "Insance name"
   type        = string
 }
 
 variable "ami_id" {
-  description = "AMI ID a usar"
+  description = "AMI ID"
   type        = string
 }
 
 variable "instance_type" {
-  description = "Tipo de instancia"
+  description = "Type of instance"
   type        = string
   default     = "t3.micro"
 }
 
 variable "subnet_id" {
-  description = "Subred donde se desplegará la instancia"
+  description = "Subnet ID where EC2 will be created"
   type        = string
-  default     = null
 }
 
-variable "security_group_ids" {
-  description = "Lista de security groups"
-  type        = list(string)
-  default     = []
+variable "security_group_id" {
+  description = "Security Group ID for the EC2 instance"
+  type        = string
 }
 
 variable "tags" {
-  description = "Etiquetas adicionales"
+  description = "Additional tags for the instance"
   type        = map(string)
   default     = {}
 }
