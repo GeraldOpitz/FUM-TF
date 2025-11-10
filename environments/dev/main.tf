@@ -1,6 +1,6 @@
 module "flask_db" {
   source              = "../../modules/ec2"
-  name                = "Flask-DB"
+  name                = "Flask-DB-dev"
   ami_id              = "ami-0c02fb55956c7d316"
   instance_type       = "t3.micro"
   subnet_id           = module.networking.private_subnet_1_id
@@ -13,7 +13,7 @@ module "flask_db" {
 
 module "flask_app" {
   source              = "../../modules/ec2"
-  name                = "Flask-App-User-Manager"
+  name                = "Flask-App-User-Manager-dev"
   ami_id              = "ami-0c02fb55956c7d316"
   instance_type       = "t3.micro"
   subnet_id           = module.networking.public_subnet_1_id
