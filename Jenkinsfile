@@ -98,9 +98,9 @@ pipeline {
               }
             }
 
-            sshagent(['ec2-app-key']) {
+            sshagent(credentials: ['ec2-app-key']) {
                 sh "ssh-add -l"
-                sh "ansible-playbook -i inventories/dev/inventory.ini playbooks.yml -u ubuntu"
+                sh "ansible-playbook -i inventories/dev/inventory.ini playbooks.yml"
             }
           }
         }
