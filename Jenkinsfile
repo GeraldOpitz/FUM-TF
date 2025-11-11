@@ -76,7 +76,6 @@ pipeline {
       }
     }
 
-
     stage('Prepare Inventory and Run Ansible') {
       steps {
         dir("${env.WORKSPACE}/ansible") {
@@ -99,6 +98,7 @@ pipeline {
       }
     }
 
+  }
 
   post {
     success {
