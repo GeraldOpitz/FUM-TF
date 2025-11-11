@@ -77,7 +77,7 @@ pipeline {
         dir("${env.WORKSPACE}/ansible-run") {
           script {
             withAWS(credentials: 'aws-credentials', region: 'us-east-1') {
-              def appIp = sh(script: "terraform -chdir=../../environments/dev output -raw flask_app_public_ip", returnStdout: true).trim()
+              def appIp = sh(script: "terraform -chdir=${env.WORKSPACE}/environments/dev output -raw flask_app_public_ip", returnStdout: true).trim()
               
               echo "Terraform outputs -> App IP: ${appIp} (DB is private, using ProxyJump through App)"
               
