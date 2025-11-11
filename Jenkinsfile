@@ -66,14 +66,16 @@ pipeline {
     stage('Clone Ansible Project') {
       steps {
         dir("${env.WORKSPACE}/ansible") {
-          sh 'rm -rf *'
+          sh 'rm -rf ./* ./.??* || true'
+          
           sh '''
             git clone -b feature/FUM-52-Set-up-Ansible-project-structure \
-              https://github.com/GeraldOpitz/Flask-App-User-Manager.git .
+            https://github.com/GeraldOpitz/Flask-App-User-Manager.git .
           '''
         }
       }
     }
+
 
     stage('Prepare Inventory and Run Ansible') {
       steps {
