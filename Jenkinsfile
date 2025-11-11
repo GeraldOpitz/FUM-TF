@@ -78,8 +78,8 @@ pipeline {
       steps {
         dir("${env.WORKSPACE}/ansible") {
           script {
-            def appIp = sh(script: "terraform -chdir=../../environments/dev output -raw flask_app_public_ip", returnStdout: true).trim()
-            def dbIp  = sh(script: "terraform -chdir=../../environments/dev output -raw flask_db_public_ip", returnStdout: true).trim()
+            def appIp = sh(script: "terraform -chdir=../environments/dev output -raw flask_app_public_ip", returnStdout: true).trim()
+            def dbIp  = sh(script: "terraform -chdir=../environments/dev output -raw flask_db_public_ip", returnStdout: true).trim()
 
             sh """
               sed -i 's/REPLACE_APP_IP/${appIp}/' inventories/dev/inventory.ini
