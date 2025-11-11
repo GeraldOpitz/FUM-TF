@@ -93,7 +93,7 @@ pipeline {
             }
 
             sshagent(['ec2-db-key', 'ec2-app-key']) {
-              sh "ansible-playbook -i ansible/inventories/dev/inventory.ini playbooks.yml -u ubuntu"
+              sh "ansible-playbook -i inventories/dev/inventory.ini playbooks.yml -u ubuntu"
             }
           }
         }
