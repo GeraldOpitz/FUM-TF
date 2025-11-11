@@ -65,10 +65,11 @@ pipeline {
 
     stage('Clone Ansible Project') {
         steps {
-          dir("${env.WORKSPACE}/ansible-run") {
-              sh 'rm -rf ./* ./.??*'
-              sh 'git clone -b feature/FUM-52-Set-up-Ansible-project-structure https://github.com/GeraldOpitz/Flask-App-User-Manager.git .'
-          }
+            dir("${env.WORKSPACE}/ansible-run") {
+                sh 'rm -rf *'
+                sh 'git clone -b feature/FUM-52-Set-up-Ansible-project-structure https://github.com/GeraldOpitz/Flask-App-User-Manager.git .'
+                sh 'ls -R'
+            }
         }
     }
 
@@ -77,12 +78,12 @@ pipeline {
         dir("${env.WORKSPACE}/ansible-run") {
           script {
             withAWS(credentials: 'aws-credentials', region: 'us-east-1') {
-              def appIp = sh(script: "terraform -chdir=${env.WORKSPACE}/environments/dev output -raw flask_app_public_ip", returnStdout: true).trim()
+              def appIp = sh(script: "terraform -chdir=../../environments/dev output -raw flask_app_public_ip", returnStdout: true).trim()
               
               echo "Terraform outputs -> App IP: ${appIp} (DB is private, using ProxyJump through App)"
               
               if (appIp) {
-                sh "sed -i \"s|REPLACE_APP_IP|${appIp}|\" inventories/dev/inventory.ini"
+                sh "sed -i \"s|REPLACE_APP_IP|${appIp}|\" ansible/inventories/dev/inventory.ini"
               } else {
                 error "App IP is empty, cannot proceed."
               }
