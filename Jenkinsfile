@@ -7,7 +7,7 @@ pipeline {
   }
 
   stages {
-    stage('Checkout') {
+    stage('Checkout Terraform Project') {
       steps {
         checkout scm
       }
@@ -52,14 +52,57 @@ pipeline {
         }
       }
     }
+
+    stage('Terraform Output') {
+      steps {
+        dir("${TF_DIR}") {
+          withAWS(credentials: 'aws-credentials', region: 'us-east-1') {
+            sh 'terraform output -json > tf-output.json'
+          }
+        }
+      }
+    }
+
+    stage('Clone Ansible Project') {
+      steps {
+        dir("${env.WORKSPACE}/ansible") {
+          sh '''
+            git clone -b feature/FUM-52-Set-up-Ansible-project-structure \
+              https://github.com/GeraldOpitz/Flask-App-User-Manager.git .
+          '''
+        }
+      }
+    }
+
+    stage('Prepare Inventory and Run Ansible') {
+      steps {
+        dir("${env.WORKSPACE}/ansible") {
+          script {
+            def appIp = sh(script: "terraform -chdir=../../environments/dev output -raw flask_app_public_ip", returnStdout: true).trim()
+            def dbIp  = sh(script: "terraform -chdir=../../environments/dev output -raw flask_db_public_ip", returnStdout: true).trim()
+
+            sh """
+              sed -i 's/REPLACE_APP_IP/${appIp}/' inventories/dev/inventory.ini
+              sed -i 's/REPLACE_DB_IP/${dbIp}/' inventories/dev/inventory.ini
+            """
+
+            sshagent(['ec2-db-key', 'ec2-app-key']) {
+              sh """
+                ansible-playbook -i inventories/dev/inventory.ini playbooks.yml -u ubuntu
+              """
+            }
+          }
+        }
+      }
+    }
   }
 
   post {
     success {
-      echo "Resources created."
+      echo "Resources created and configured with Ansible."
     }
     failure {
-      echo "Failed to create resources."
+      echo "Failed to create or configure resources."
     }
   }
 }
