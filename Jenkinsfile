@@ -78,7 +78,7 @@ pipeline {
 
     stage('Prepare Inventory and Run Ansible') {
       steps {
-        dir("${env.WORKSPACE}/ansible") {
+        dir("${env.WORKSPACE}/ansible/ansible") {
           script {
             withAWS(credentials: 'aws-credentials', region: 'us-east-1') {
               def appIp = sh(script: "terraform -chdir=../environments/dev output -raw flask_app_public_ip", returnStdout: true).trim()
@@ -86,7 +86,7 @@ pipeline {
               echo "Terraform outputs -> App IP: ${appIp} (DB is private, using ProxyJump through App)"
               
               if (appIp) {
-                sh "sed -i 's/REPLACE_APP_IP/${appIp}/' ansible/inventories/dev/inventory.ini"
+                sh "sed -i 's/REPLACE_APP_IP/${appIp}/'inventories/dev/inventory.ini"
               } else {
                 error "App IP is empty, cannot proceed."
               }
