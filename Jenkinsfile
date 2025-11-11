@@ -2,7 +2,7 @@ pipeline {
   agent any
 
   environment {
-    TF_DIR = 'environments/dev'
+    TF_DIR = "${env.WORKSPACE}/environments/dev"
     PATH = "$HOME/terraform:$PATH"
   }
 
@@ -73,7 +73,6 @@ pipeline {
       steps {
         dir("${env.WORKSPACE}/ansible") {
           sh 'rm -rf ./* ./.??* || true'
-          
           sh '''
             git clone -b feature/FUM-52-Set-up-Ansible-project-structure \
             https://github.com/GeraldOpitz/Flask-App-User-Manager.git .
@@ -86,24 +85,28 @@ pipeline {
       steps {
         script {
           withAWS(credentials: 'aws-credentials', region: 'us-east-1') {
-            def appIp = sh(script: "terraform -chdir=../environments/dev output -raw flask_app_public_ip", returnStdout: true).trim()
+            def appIp = sh(
+              script: "terraform -chdir=${TF_DIR} output -raw flask_app_public_ip",
+              returnStdout: true
+            ).trim()
             echo "Terraform outputs -> App IP: ${appIp} (DB is private, using ProxyJump through App)"
 
-            if (appIp) {
-              sh "sed -i \"s|REPLACE_APP_IP|${appIp}|\" ${env.WORKSPACE}/ansible/inventories/dev/inventory.ini"
-            } else {
+            if (!appIp) {
               error "App IP is empty, cannot proceed."
             }
+
+            sh "sed -i \"s|REPLACE_APP_IP|${appIp}|\" ${env.WORKSPACE}/ansible/inventories/dev/inventory.ini"
           }
-          sh "ssh-add -D"
+
           sshagent(['ec2-app-key']) {
-            sh "ssh-add -l" 
-            sh "ansible-playbook -i inventories/dev/inventory.ini playbooks.yml"}
+            sh "ssh-add -l"
+            sh "ansible-playbook -i ${env.WORKSPACE}/ansible/inventories/dev/inventory.ini ${env.WORKSPACE}/ansible/playbooks.yml -u ubuntu"
+          }
         }
       }
     }
   }
-  
+
   post {
     success {
       echo "Resources created and configured with Ansible."
