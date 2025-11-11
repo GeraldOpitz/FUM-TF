@@ -84,10 +84,19 @@ pipeline {
               def appIp = sh(script: "terraform -chdir=../environments/dev output -raw flask_app_public_ip", returnStdout: true).trim()
               def dbIp  = sh(script: "terraform -chdir=../environments/dev output -raw flask_db_public_ip", returnStdout: true).trim()
 
-              sh """
-                sed -i 's/REPLACE_APP_IP/${appIp}/' ansible/inventories/dev/inventory.ini
-                sed -i 's/REPLACE_DB_IP/${dbIp}/' ansible/inventories/dev/inventory.ini
-              """
+              echo "Terraform outputs -> App IP: ${appIp}, DB IP: ${dbIp}"
+
+              if (appIp) {
+                sh "sed -i 's/REPLACE_APP_IP/${appIp}/' ansible/inventories/dev/inventory.ini"
+              } else {
+                echo "App IP is empty, skipping replacement."
+              }
+
+              if (dbIp) {
+                sh "sed -i 's/REPLACE_DB_IP/${dbIp}/' ansible/inventories/dev/inventory.ini"
+              } else {
+                echo "DB IP is empty, skipping replacement."
+              }
             }
 
             sshagent(['ec2-db-key', 'ec2-app-key']) {
@@ -97,6 +106,7 @@ pipeline {
         }
       }
     }
+
 
   }
 
