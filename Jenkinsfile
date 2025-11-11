@@ -81,6 +81,7 @@ pipeline {
       steps {
         dir("${env.WORKSPACE}/ansible") {
           script {
+            withAWS(credentials: 'aws-credentials', region: 'us-east-1') {
             def appIp = sh(script: "terraform -chdir=../environments/dev output -raw flask_app_public_ip", returnStdout: true).trim()
             def dbIp  = sh(script: "terraform -chdir=../environments/dev output -raw flask_db_public_ip", returnStdout: true).trim()
 
