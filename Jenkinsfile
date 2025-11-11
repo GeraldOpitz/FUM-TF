@@ -1,6 +1,13 @@
 pipeline {
   agent any
 
+  stages {
+    stage('Clean Workspace') {
+        steps {
+            deleteDir()
+        }
+    }
+
   environment {
     TF_DIR = 'environments/dev'
     PATH = "$HOME/terraform:$PATH"
@@ -64,18 +71,21 @@ pipeline {
     }
 
     stage('Clone Ansible Project') {
-        steps {
-            dir("${env.WORKSPACE}/ansible-run") {
-                sh 'rm -rf *'
-                sh 'git clone -b feature/FUM-52-Set-up-Ansible-project-structure https://github.com/GeraldOpitz/Flask-App-User-Manager.git .'
-                sh 'ls -R'
-            }
+      steps {
+        dir("${env.WORKSPACE}/ansible") {
+          sh 'rm -rf ./* ./.??* || true'
+          
+          sh '''
+            git clone -b feature/FUM-52-Set-up-Ansible-project-structure \
+            https://github.com/GeraldOpitz/Flask-App-User-Manager.git .
+          '''
         }
+      }
     }
 
     stage('Prepare Inventory and Run Ansible') {
       steps {
-        dir("${env.WORKSPACE}/ansible-run") {
+        dir("${env.WORKSPACE}/ansible/ansible") {
           script {
             withAWS(credentials: 'aws-credentials', region: 'us-east-1') {
               def appIp = sh(script: "terraform -chdir=../../environments/dev output -raw flask_app_public_ip", returnStdout: true).trim()
@@ -83,13 +93,14 @@ pipeline {
               echo "Terraform outputs -> App IP: ${appIp} (DB is private, using ProxyJump through App)"
               
               if (appIp) {
-                sh "sed -i \"s|REPLACE_APP_IP|${appIp}|\" ansible/inventories/dev/inventory.ini"
+                sh "sed -i \"s|REPLACE_APP_IP|${appIp}|\" inventories/dev/inventory.ini"
               } else {
                 error "App IP is empty, cannot proceed."
               }
             }
 
             sshagent(['ec2-app-key']) {
+                sh "ssh-add -l"
                 sh "ansible-playbook -i inventories/dev/inventory.ini playbooks.yml -u ubuntu"
             }
           }
