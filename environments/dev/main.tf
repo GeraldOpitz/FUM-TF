@@ -1,7 +1,7 @@
 module "flask_db" {
   source              = "../../modules/ec2"
   name                = "Flask-DB-dev"
-  ami_id              = "ami-0c02fb55956c7d316"
+  ami_id              = "ami-0ecb62995f68bb549"
   instance_type       = "t3.micro"
   subnet_id           = module.networking.private_subnet_1_id
   security_group_id   = module.networking.flask_db_sg_id
@@ -15,7 +15,7 @@ module "flask_db" {
 module "flask_app" {
   source              = "../../modules/ec2"
   name                = "Flask-App-User-Manager-dev"
-  ami_id              = "ami-0c02fb55956c7d316"
+  ami_id              = "ami-0ecb62995f68bb549"
   instance_type       = "t3.micro"
   subnet_id           = module.networking.public_subnet_1_id
   security_group_id   = module.networking.flask_app_sg_id
