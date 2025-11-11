@@ -7,6 +7,7 @@ pipeline {
             deleteDir()
         }
     }
+  }
 
   environment {
     TF_DIR = 'environments/dev'
