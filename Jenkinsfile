@@ -89,16 +89,21 @@ pipeline {
               script: "terraform -chdir=${TF_DIR} output -raw flask_app_public_ip",
               returnStdout: true
             ).trim()
-            echo "Terraform outputs -> App IP: ${appIp} (DB is private, using ProxyJump through App)"
+            def dbIp = sh(
+              script: "terraform -chdir=${TF_DIR} output -raw flask_db_public_ip",
+              returnStdout: true
+            ).trim()
+            echo "Terraform outputs -> App IP: ${appIp}, DB IP: ${dbIp}"
 
-            if (!appIp) {
-              error "App IP is empty, cannot proceed."
+            if (!appIp || !dbIp) {
+              error "One or more Terraform outputs are empty (App: ${appIp}, DB: ${dbIp})."
             }
 
             sh "sed -i \"s|REPLACE_APP_IP|${appIp}|\" ${env.WORKSPACE}/ansible/ansible/inventories/dev/inventory.ini"
+            sh "sed -i \"s|REPLACE_APP_IP|${dbIp}|\" ${env.WORKSPACE}/ansible/ansible/inventories/dev/inventory.ini"
           }
 
-          sshagent(['ec2-app-key']) {
+          sshagent(['ec2-app-key', 'ec2-db-key']) {
             sh "ssh-add -l"
             sh "ansible-playbook -i ${env.WORKSPACE}/ansible/ansible/inventories/dev/inventory.ini ${env.WORKSPACE}/ansible/ansible/playbooks.yml -u ubuntu"
           }
