@@ -95,12 +95,12 @@ pipeline {
               error "App IP is empty, cannot proceed."
             }
 
-            sh "sed -i \"s|REPLACE_APP_IP|${appIp}|\" ${env.WORKSPACE}/ansible/inventories/dev/inventory.ini"
+            sh "sed -i \"s|REPLACE_APP_IP|${appIp}|\" ${env.WORKSPACE}/ansible/ansible/inventories/dev/inventory.ini"
           }
 
           sshagent(['ec2-app-key']) {
             sh "ssh-add -l"
-            sh "ansible-playbook -i ${env.WORKSPACE}/ansible/inventories/dev/inventory.ini ${env.WORKSPACE}/ansible/playbooks.yml -u ubuntu"
+            sh "ansible-playbook -i ${env.WORKSPACE}/ansible/ansible/inventories/dev/inventory.ini ${env.WORKSPACE}/ansible/playbooks.yml -u ubuntu"
           }
         }
       }
