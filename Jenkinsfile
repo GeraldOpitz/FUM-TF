@@ -86,7 +86,7 @@ pipeline {
               echo "Terraform outputs -> App IP: ${appIp} (DB is private, using ProxyJump through App)"
               
               if (appIp) {
-                sh "sed -i 's/REPLACE_APP_IP/${appIp}/'inventories/dev/inventory.ini"
+                sh "sed -i \"s|REPLACE_APP_IP|${appIp}|\" inventories/dev/inventory.ini"
               } else {
                 error "App IP is empty, cannot proceed."
               }
