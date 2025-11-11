@@ -1,20 +1,18 @@
 pipeline {
   agent any
 
-  stages {
-    stage('Clean Workspace') {
-        steps {
-            deleteDir()
-        }
-    }
-  }
-
   environment {
     TF_DIR = 'environments/dev'
     PATH = "$HOME/terraform:$PATH"
   }
 
   stages {
+    stage('Clean Workspace') {
+      steps {
+        deleteDir()
+      }
+    }
+
     stage('Checkout Terraform Project') {
       steps {
         checkout scm
