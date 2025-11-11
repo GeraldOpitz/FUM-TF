@@ -85,13 +85,13 @@ pipeline {
               def dbIp  = sh(script: "terraform -chdir=../environments/dev output -raw flask_db_public_ip", returnStdout: true).trim()
 
               sh """
-                sed -i 's/REPLACE_APP_IP/${appIp}/' inventories/dev/inventory.ini
-                sed -i 's/REPLACE_DB_IP/${dbIp}/' inventories/dev/inventory.ini
+                sed -i 's/REPLACE_APP_IP/${appIp}/' ansible/inventories/dev/inventory.ini
+                sed -i 's/REPLACE_DB_IP/${dbIp}/' ansible/inventories/dev/inventory.ini
               """
             }
 
             sshagent(['ec2-db-key', 'ec2-app-key']) {
-              sh "ansible-playbook -i inventories/dev/inventory.ini playbooks.yml -u ubuntu"
+              sh "ansible-playbook -i ansible/inventories/dev/inventory.ini playbooks.yml -u ubuntu"
             }
           }
         }
