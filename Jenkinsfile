@@ -65,10 +65,10 @@ pipeline {
 
     stage('Clone Ansible Project') {
         steps {
-            dir("${env.WORKSPACE}/ansible-run") {
-                sh 'rm -rf *'
-                sh 'git clone -b feature/FUM-52-Set-up-Ansible-project-structure https://github.com/GeraldOpitz/Flask-App-User-Manager.git .'
-            }
+          dir("${env.WORKSPACE}/ansible-run") {
+              sh 'rm -rf ./* ./.??*'
+              sh 'git clone -b feature/FUM-52-Set-up-Ansible-project-structure https://github.com/GeraldOpitz/Flask-App-User-Manager.git .'
+          }
         }
     }
 
