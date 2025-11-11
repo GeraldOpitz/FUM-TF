@@ -84,31 +84,26 @@ pipeline {
 
     stage('Prepare Inventory and Run Ansible') {
       steps {
-        dir("${env.WORKSPACE}/ansible/ansible") {
-          script {
-            withAWS(credentials: 'aws-credentials', region: 'us-east-1') {
-              def appIp = sh(script: "terraform -chdir=../../environments/dev output -raw flask_app_public_ip", returnStdout: true).trim()
-              
-              echo "Terraform outputs -> App IP: ${appIp} (DB is private, using ProxyJump through App)"
-              
-              if (appIp) {
-                sh "sed -i \"s|REPLACE_APP_IP|${appIp}|\" inventories/dev/inventory.ini"
-              } else {
-                error "App IP is empty, cannot proceed."
-              }
-            }
+        script {
+          withAWS(credentials: 'aws-credentials', region: 'us-east-1') {
+            def appIp = sh(script: "terraform -chdir=../../environments/dev output -raw flask_app_public_ip", returnStdout: true).trim()
+            echo "Terraform outputs -> App IP: ${appIp} (DB is private, using ProxyJump through App)"
 
-            sshagent(credentials: ['ec2-app-key']) {
-                sh "ssh-add -l"
-                sh "ansible-playbook -i inventories/dev/inventory.ini playbooks.yml"
+            if (appIp) {
+              sh "sed -i \"s|REPLACE_APP_IP|${appIp}|\" ${env.WORKSPACE}/ansible/inventories/dev/inventory.ini"
+            } else {
+              error "App IP is empty, cannot proceed."
             }
           }
+          sh "ssh-add -D"
+          sshagent(['ec2-app-key']) {
+            sh "ssh-add -l" 
+            sh "ansible-playbook -i inventories/dev/inventory.ini playbooks.yml"}
         }
       }
     }
-
   }
-
+  
   post {
     success {
       echo "Resources created and configured with Ansible."
