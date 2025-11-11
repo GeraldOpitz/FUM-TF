@@ -15,11 +15,18 @@ pipeline {
     stage('Terraform Init') {
       steps {
         dir("${TF_DIR}") {
-          withAWS(credentials: 'aws-credentials', region: 'us-east-1') {
-            sh '''
-              echo "=== Starting Terraform ==="
-              terraform init -reconfigure -backend-config="backend.hcl"
-            '''
+          script {
+            def terraformHome = tool name: 'Terraform 1.6.4', type: 'terraform'
+
+            withEnv(["PATH+TERRAFORM=${terraformHome}"]) {
+              withAWS(credentials: 'aws-credentials', region: 'us-east-1') {
+                sh '''
+                  echo "=== Starting Terraform ==="
+                  terraform version
+                  terraform init -reconfigure -backend-config="backend.hcl"
+                '''
+              }
+            }
           }
         }
       }
@@ -28,11 +35,17 @@ pipeline {
     stage('Terraform Plan') {
       steps {
         dir("${TF_DIR}") {
-          withAWS(credentials: 'aws-credentials', region: 'us-east-1') {
-            sh '''
-              echo "=== Planning changes ==="
-              terraform plan -out=tfplan
-            '''
+          script {
+            def terraformHome = tool name: 'Terraform 1.6.4', type: 'terraform'
+
+            withEnv(["PATH+TERRAFORM=${terraformHome}"]) {
+              withAWS(credentials: 'aws-credentials', region: 'us-east-1') {
+                sh '''
+                  echo "=== Planning changes ==="
+                  terraform plan -out=tfplan
+                '''
+              }
+            }
           }
         }
       }
@@ -41,11 +54,17 @@ pipeline {
     stage('Terraform Apply') {
       steps {
         dir("${TF_DIR}") {
-          withAWS(credentials: 'aws-credentials', region: 'us-east-1') {
-            sh '''
-              echo "=== Applying changes ==="
-              terraform apply -auto-approve tfplan
-            '''
+          script {
+            def terraformHome = tool name: 'Terraform 1.6.4', type: 'terraform'
+
+            withEnv(["PATH+TERRAFORM=${terraformHome}"]) {
+              withAWS(credentials: 'aws-credentials', region: 'us-east-1') {
+                sh '''
+                  echo "=== Applying changes ==="
+                  terraform apply -auto-approve tfplan
+                '''
+              }
+            }
           }
         }
       }
