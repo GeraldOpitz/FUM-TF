@@ -100,7 +100,7 @@ pipeline {
             }
 
             sh "sed -i \"s|REPLACE_APP_IP|${appIp}|\" ${env.WORKSPACE}/ansible/ansible/inventories/dev/inventory.ini"
-            sh "sed -i \"s|REPLACE_APP_IP|${dbIp}|\" ${env.WORKSPACE}/ansible/ansible/inventories/dev/inventory.ini"
+            sh "sed -i \"s|REPLACE_DB_IP|${dbIp}|\" ${env.WORKSPACE}/ansible/ansible/inventories/dev/inventory.ini"
           }
 
           sshagent(['ec2-app-key', 'ec2-db-key']) {
