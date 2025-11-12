@@ -74,7 +74,7 @@ pipeline {
         dir("${env.WORKSPACE}/ansible") {
           sh 'rm -rf ./* ./.??* || true'
           sh '''
-            git clone -b feature/FUM-52-Set-up-Ansible-project-structure \
+            git clone -b develop \
             https://github.com/GeraldOpitz/Flask-App-User-Manager.git .
           '''
         }
