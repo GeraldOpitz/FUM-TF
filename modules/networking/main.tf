@@ -104,7 +104,7 @@ resource "aws_security_group" "flask_db_sg" {
     from_port   = var.db_port
     to_port     = var.db_port
     protocol    = "tcp"
-    cidr_blocks = [var.subnet_cidr]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   ingress {
