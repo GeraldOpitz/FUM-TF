@@ -103,9 +103,20 @@ pipeline {
             sh "sed -i \"s|REPLACE_DB_IP|${dbIp}|\" ${env.WORKSPACE}/ansible/ansible/inventories/dev/inventory.ini"
           }
 
-          sshagent(['ec2-app-key', 'ec2-db-key']) {
-            sh "ssh-add -l"
-            sh "ansible-playbook -i ${env.WORKSPACE}/ansible/ansible/inventories/dev/inventory.ini ${env.WORKSPACE}/ansible/ansible/playbooks.yml -u ubuntu"
+          withCredentials([string(credentialsId: 'ansible_vault_pass', variable: 'VAULT_PASS')]) {
+            sshagent(['ec2-app-key', 'ec2-db-key']) {
+              sh '''
+                echo "$VAULT_PASS" > ${WORKSPACE}/ansible/.vault_pass.txt
+                chmod 600 ${WORKSPACE}/ansible/.vault_pass.txt
+                ssh-add -l
+                ansible-playbook \
+                  -i ${WORKSPACE}/ansible/ansible/inventories/dev/inventory.ini \
+                  ${WORKSPACE}/ansible/ansible/playbooks.yml \
+                  --vault-password-file ${WORKSPACE}/ansible/.vault_pass.txt \
+                  -u ubuntu
+                rm -f ${WORKSPACE}/ansible/.vault_pass.txt
+              '''
+            }
           }
         }
       }
