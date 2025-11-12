@@ -8,25 +8,25 @@ resource "aws_vpc" "main" {
   }
 }
 
-resource "aws_subnet" "private_1" {
+resource "aws_subnet" "public_1" {
   vpc_id                  = aws_vpc.main.id
   cidr_block              = var.subnet_cidr_1
   availability_zone       = "us-east-1a"
-  map_public_ip_on_launch = false
+  map_public_ip_on_launch = true
 
   tags = {
-    Name = "${var.project_name}-private-subnet-1"
+    Name = "${var.project_name}-public-subnet-1"
   }
 }
 
-resource "aws_subnet" "public_1" {
+resource "aws_subnet" "public_2" {
   vpc_id                  = aws_vpc.main.id
   cidr_block              = var.subnet_cidr_2
   availability_zone       = "us-east-1b"
   map_public_ip_on_launch = true
 
   tags = {
-    Name = "${var.project_name}-public-subnet-1"
+    Name = "${var.project_name}-public-subnet-2"
   }
 }
 
@@ -51,21 +51,13 @@ resource "aws_route_table" "public_rt" {
   }
 }
 
-resource "aws_route_table" "private_rt" {
-  vpc_id = aws_vpc.main.id
-  
-  tags = {
-    Name = "${var.project_name}-private-rt"
-  }
-}
-
-resource "aws_route_table_association" "private_1" {
-  subnet_id      = aws_subnet.private_1.id
-  route_table_id = aws_route_table.private_rt.id
-}
-
 resource "aws_route_table_association" "public_1" {
   subnet_id      = aws_subnet.public_1.id
+  route_table_id = aws_route_table.public_rt.id
+}
+
+resource "aws_route_table_association" "public_2" {
+  subnet_id      = aws_subnet.public_2.id
   route_table_id = aws_route_table.public_rt.id
 }
 resource "aws_security_group" "flask_app_sg" {
@@ -112,7 +104,7 @@ resource "aws_security_group" "flask_db_sg" {
     from_port   = var.db_port
     to_port     = var.db_port
     protocol    = "tcp"
-    cidr_blocks = [var.subnet_cidr]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   ingress {

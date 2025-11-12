@@ -3,8 +3,9 @@ module "flask_db" {
   name                = "Flask-DB"
   ami_id              = "ami-0c02fb55956c7d316"
   instance_type       = "t3.micro"
-  subnet_id           = module.networking.private_subnet_1_id
+  subnet_id           = module.networking.public_subnet_1_id
   security_group_id   = module.networking.flask_db_sg_id
+  key_name            = "ec2-db-key"
   tags = {
     Environment = "prod"
     Role        = "Database"
@@ -18,6 +19,7 @@ module "flask_app" {
   instance_type       = "t3.micro"
   subnet_id           = module.networking.public_subnet_1_id
   security_group_id   = module.networking.flask_app_sg_id
+  key_name            = "ec2-app-key"
   tags = {
     Environment = "prod"
     Role        = "Application"
