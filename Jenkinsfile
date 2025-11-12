@@ -105,7 +105,7 @@ pipeline {
 
           sshagent(['ec2-app-key', 'ec2-db-key']) {
             sh "ssh-add -l"
-            sh "ansible-playbook -i ${env.WORKSPACE}/ansible/ansible/inventories/dev/inventory.ini ${env.WORKSPACE}/ansible/ansible/playbooks.yml -u ubuntu -vvv"
+            sh "ansible-playbook -i ${env.WORKSPACE}/ansible/ansible/inventories/dev/inventory.ini ${env.WORKSPACE}/ansible/ansible/playbooks.yml -u ubuntu"
           }
         }
       }
