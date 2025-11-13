@@ -94,6 +94,32 @@ pipeline {
       }
     }
 
+    stage('Generate Test Inventory') {
+      when { expression { env.CHANGE_ID } }
+      steps {
+        script {
+          withAWS(credentials: 'aws-credentials', region: 'us-east-1') {
+            sh """
+              APP_IP=$(terraform -chdir=$TF_DIR output -raw app_public_ip)
+              DB_IP=$(terraform -chdir=$TF_DIR output -raw db_public_ip)
+
+              cat > ${WORKSPACE}/ansible/ansible/inventories/dev/inventory.ini <<EOF
+              [all:vars]
+              ansible_user=ubuntu
+              ansible_python_interpreter=/usr/bin/python3
+
+              [app]
+              APP_EC2 ansible_host=${APP_IP} ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+
+              [db]
+              DB_EC2 ansible_host=${DB_IP} ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+              EOF
+                      """
+          }
+        }
+      }
+    }
+
     stage('Run Ansible - Feature Tests') {
       when {
         expression {
