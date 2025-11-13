@@ -27,7 +27,7 @@ pipeline {
             sh '''
               echo "Starting Terraform"
               terraform version
-              terraform init -backend-config="backend.hcl"
+              terraform init -reconfigure -backend-config="backend.hcl"
             '''
           }
         }
@@ -73,10 +73,25 @@ pipeline {
     }
 
     stage('Terraform Output') {
+      when {
+        allOf {
+          expression { !env.CHANGE_ID }
+          anyOf {
+            branch 'develop'
+            branch 'main'
+          }
+        }
+      }
       steps {
         dir("${TF_DIR}") {
           withAWS(credentials: 'aws-credentials', region: 'us-east-1') {
-            sh 'terraform output -json > tf-output.json'
+            sh '''
+              echo "Mostrando Terraform Output:"
+              terraform output
+
+              echo "Generando tf-output.json..."
+              terraform output -json > tf-output.json
+            '''
           }
         }
       }
