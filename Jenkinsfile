@@ -73,15 +73,6 @@ pipeline {
     }
 
     stage('Terraform Output') {
-      when {
-        allOf {
-          expression { !env.CHANGE_ID }
-          anyOf {
-            branch 'develop'
-            branch 'main'
-          }
-        }
-      }
       steps {
         dir("${TF_DIR}") {
           withAWS(credentials: 'aws-credentials', region: 'us-east-1') {
