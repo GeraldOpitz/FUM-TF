@@ -12,7 +12,7 @@ pipeline {
         steps {
             script {
                 if (!(env.CHANGE_TARGET == 'develop' || env.BRANCH_NAME == 'develop')) {
-                    error("Not a PR to develop. Pipeline stopped.")
+                    error("Not a PR to branch develop. Pipeline stopped.")
                 } else {
                     echo "PR to develop detected, pipeline continues..."
                 }
