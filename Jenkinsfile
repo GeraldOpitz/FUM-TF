@@ -8,7 +8,7 @@ pipeline {
 
   stages {
 
-    stage('Check PR target') {
+    stage('Check PR target branch') {
       when {
         expression {
           return (env.CHANGE_TARGET == 'develop') || (env.BRANCH_NAME == 'develop')
