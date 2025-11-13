@@ -6,6 +6,8 @@ pipeline {
     PATH = "$HOME/terraform:$PATH"
   }
 
+  stages {
+
     stage('Check PR target branch') {
         steps {
             script {
