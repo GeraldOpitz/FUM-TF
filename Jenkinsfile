@@ -6,17 +6,16 @@ pipeline {
     PATH = "$HOME/terraform:$PATH"
   }
 
-  stages {
-
     stage('Check PR target branch') {
-      when {
-        expression {
-          return (env.CHANGE_TARGET == 'develop') || (env.BRANCH_NAME == 'develop')
+        steps {
+            script {
+                if (!(env.CHANGE_TARGET == 'develop' || env.BRANCH_NAME == 'develop')) {
+                    error("Not a PR to develop. Pipeline stopped.")
+                } else {
+                    echo "PR to develop detected, pipeline continues..."
+                }
+            }
         }
-      }
-      steps {
-        echo "PR to develop detected, pipeline continues..."
-      }
     }
 
     stage('Clean Workspace') {
