@@ -7,16 +7,6 @@ pipeline {
   }
 
   stages {
-
-    stage('Check PR Target Branch') {
-      when {
-        expression { return env.CHANGE_TARGET == 'develop' }
-      }
-      steps {
-        echo "PR hacia develop detectado, pipeline continúa..."
-      }
-    }
-
     stage('Deploy Terraform & Ansible') {
       when {
         expression { return env.CHANGE_AUTHOR_REVIEW_STATE == 'APPROVED' }
@@ -63,13 +53,22 @@ pipeline {
         }
 
         stage('Terraform Apply') {
+          when {
+            anyOf {
+              branch 'develop'
+              branch 'main'
+            }
+          }
           steps {
-            dir("${TF_DIR}") {
-              withAWS(credentials: 'aws-credentials', region: 'us-east-1') {
-                sh '''
-                  echo "Applying changes"
-                  terraform apply -auto-approve tfplan
-                '''
+            script {
+              input message: "¿Do you wish to apply Terraform changes in ${env.BRANCH_NAME}? Type 'yes' to continue.", ok: "yes"
+              dir("${TF_DIR}") {
+                withAWS(credentials: 'aws-credentials', region: 'us-east-1') {
+                  sh '''
+                    echo "Applying changes"
+                    terraform apply tfplan
+                  '''
+                }
               }
             }
           }
