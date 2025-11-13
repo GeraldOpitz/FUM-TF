@@ -99,22 +99,18 @@ pipeline {
       steps {
         script {
           withAWS(credentials: 'aws-credentials', region: 'us-east-1') {
-            sh """
+            sh '''
               APP_IP=$(terraform -chdir=$TF_DIR output -raw app_public_ip)
               DB_IP=$(terraform -chdir=$TF_DIR output -raw db_public_ip)
 
               cat > ${WORKSPACE}/ansible/ansible/inventories/dev/inventory.ini <<EOF
-              [all:vars]
-              ansible_user=ubuntu
-              ansible_python_interpreter=/usr/bin/python3
+    [app]
+    APP_EC2 ansible_host=${APP_IP}
 
-              [app]
-              APP_EC2 ansible_host=${APP_IP} ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
-
-              [db]
-              DB_EC2 ansible_host=${DB_IP} ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
-              EOF
-                      """
+    [db]
+    DB_EC2 ansible_host=${DB_IP}
+    EOF
+            '''
           }
         }
       }
