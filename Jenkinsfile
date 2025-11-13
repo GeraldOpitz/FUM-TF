@@ -7,6 +7,18 @@ pipeline {
   }
 
   stages {
+
+    stage('Check PR target') {
+      when {
+        expression {
+          return (env.CHANGE_TARGET == 'develop') || (env.BRANCH_NAME == 'develop')
+        }
+      }
+      steps {
+        echo "PR to develop detected, pipeline continues..."
+      }
+    }
+
     stage('Clean Workspace') {
       steps {
         deleteDir()
