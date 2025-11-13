@@ -106,15 +106,15 @@ pipeline {
         script {
           withAWS(credentials: 'aws-credentials', region: 'us-east-1') {
             sh '''
-              APP_IP=$(terraform -chdir=$TF_DIR output -raw app_public_ip)
-              DB_IP=$(terraform -chdir=$TF_DIR output -raw db_public_ip)
+              APP_IP=\$(terraform -chdir=$TF_DIR output -raw flask_app_public_ip)
+              DB_IP=\$(terraform -chdir=$TF_DIR output -raw flask_db_public_ip)
 
               cat > ${WORKSPACE}/ansible/ansible/inventories/dev/inventory.ini <<EOF
     [app]
-    APP_EC2 ansible_host=${APP_IP}
+    APP_EC2 ansible_host=\${APP_IP}
 
     [db]
-    DB_EC2 ansible_host=${DB_IP}
+    DB_EC2 ansible_host=\${DB_IP}
     EOF
             '''
           }
