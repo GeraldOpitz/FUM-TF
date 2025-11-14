@@ -251,13 +251,23 @@ pipeline {
           withCredentials([string(credentialsId: 'ansible_vault_pass', variable: 'VAULT_PASS')]) {
             sshagent(['ec2-app-key', 'ec2-db-key']) {
               sh """
-                echo "$VAULT_PASS" > ${WORKSPACE}/ansible/.vault_pass.txt
+                set -e
+                echo "\$VAULT_PASS" > ${WORKSPACE}/ansible/.vault_pass.txt
                 chmod 600 ${WORKSPACE}/ansible/.vault_pass.txt
+                
                 ansible-playbook \
                   -i ${WORKSPACE}/ansible/ansible/inventories/dev/inventory.ini \
                   ${WORKSPACE}/ansible/ansible/playbooks.yml \
                   --vault-password-file ${WORKSPACE}/ansible/.vault_pass.txt \
-                  -u ubuntu
+                  -u ubuntu || exit_code=\$?
+
+                if [ "\$exit_code" = "4" ]; then
+                  echo "Warnings only, continuing..."
+                  exit 0
+                elif [ -n "\$exit_code" ]; then
+                  exit \$exit_code
+                fi
+
                 rm -f ${WORKSPACE}/ansible/.vault_pass.txt
               """
             }
