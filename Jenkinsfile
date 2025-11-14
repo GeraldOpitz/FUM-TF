@@ -221,8 +221,8 @@ pipeline {
   }
 
   post {
-    success {
-      echo "Resources created and configured with Ansible."
+    always {
+      cleanWs()
     }
     failure {
       echo "Failed to create or configure resources."
