@@ -109,7 +109,7 @@ pipeline {
               APP_IP=\$(terraform -chdir=$TF_DIR output -raw flask_app_public_ip)
               DB_IP=\$(terraform -chdir=$TF_DIR output -raw flask_db_public_ip)
 
-              cat > ${WORKSPACE}/ansible/ansible/inventories/dev/inventory.ini <<EOL
+              cat > ${WORKSPACE}/ansible/ansible/inventories/dev/inventory.ini <<'EOF'
     [all:vars]
     ansible_user=ubuntu
     ansible_python_interpreter=/usr/bin/python3
@@ -119,7 +119,7 @@ pipeline {
 
     [db]
     DB_EC2 ansible_host=\${DB_IP} ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
-    EOL
+    EOF
             """
           }
         }
@@ -138,13 +138,25 @@ pipeline {
           withCredentials([string(credentialsId: 'ansible_vault_pass', variable: 'VAULT_PASS')]) {
             sshagent(['ec2-app-key', 'ec2-db-key']) {
               sh """
-                echo "$VAULT_PASS" > ${WORKSPACE}/ansible/.vault_pass.txt
+                set -e  # salir en cualquier error que no sea el código 4
+                echo "\$VAULT_PASS" > ${WORKSPACE}/ansible/.vault_pass.txt
                 chmod 600 ${WORKSPACE}/ansible/.vault_pass.txt
+                
+                # Ejecutar ansible y capturar exit code
                 ansible-playbook \
                   -i ${WORKSPACE}/ansible/ansible/inventories/dev/inventory.ini \
                   ${WORKSPACE}/ansible/ansible/playbooks-test.yml \
                   --vault-password-file ${WORKSPACE}/ansible/.vault_pass.txt \
-                  -u ubuntu || exit_code=\$?; if [[ \$exit_code -eq 4 ]]; then echo "Warnings only, continuing..."; exit 0; else exit \$exit_code; fi
+                  -u ubuntu || exit_code=\$?
+
+                # Permitir exit code 4 como warning
+                if [ "\$exit_code" = "4" ]; then
+                  echo "Warnings only, continuing..."
+                  exit 0
+                elif [ -n "\$exit_code" ]; then
+                  exit \$exit_code
+                fi
+
                 rm -f ${WORKSPACE}/ansible/.vault_pass.txt
               """
             }
