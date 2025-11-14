@@ -27,7 +27,7 @@ pipeline {
             sh '''
               echo "Starting Terraform"
               terraform version
-              terraform init -reconfigure -backend-config="backend.hcl"
+              terraform init -backend-config="backend.hcl"
             '''
           }
         }
@@ -109,7 +109,7 @@ pipeline {
               APP_IP=\$(terraform -chdir=$TF_DIR output -raw flask_app_public_ip)
               DB_IP=\$(terraform -chdir=$TF_DIR output -raw flask_db_public_ip)
 
-              cat > ${WORKSPACE}/ansible/ansible/inventories/dev/inventory.ini <<EOF
+              cat > ${WORKSPACE}/ansible/ansible/inventories/dev/inventory.ini <<EOL
     [all:vars]
     ansible_user=ubuntu
     ansible_python_interpreter=/usr/bin/python3
@@ -119,7 +119,7 @@ pipeline {
 
     [db]
     DB_EC2 ansible_host=\${DB_IP} ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
-    EOF
+    EOL
             """
           }
         }
