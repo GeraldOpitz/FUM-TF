@@ -163,27 +163,41 @@ pipeline {
       }
     }
 
-    stage('Generate Inventory') {
+    stage('Fetch Terraform Outputs') {
       steps {
         script {
           withAWS(credentials: 'aws-credentials', region: 'us-east-1') {
             sh """
-              APP_IP=\$(terraform -chdir=$TF_DIR output -raw flask_app_public_ip)
-              DB_IP=\$(terraform -chdir=$TF_DIR output -raw flask_db_public_ip)
+              export APP_IP=\$(terraform -chdir=$TF_DIR output -raw flask_app_public_ip)
+              export DB_IP=\$(terraform -chdir=$TF_DIR output -raw flask_db_public_ip)
 
-              cat > ${WORKSPACE}/ansible/ansible/inventories/dev/inventory.ini <<EOL
+              echo "\$APP_IP" > ${WORKSPACE}/ansible/app_ip.txt
+              echo "\$DB_IP" > ${WORKSPACE}/ansible/db_ip.txt
+            """
+          }
+        }
+      }
+    }
+
+    stage('Generate Ansible Inventory') {
+      steps {
+        script {
+          def appIp = readFile("${WORKSPACE}/ansible/app_ip.txt").trim()
+          def dbIp = readFile("${WORKSPACE}/ansible/db_ip.txt").trim()
+
+          sh """
+            cat > ${WORKSPACE}/ansible/ansible/inventories/dev/inventory.ini <<EOL
     [all:vars]
     ansible_user=ubuntu
     ansible_python_interpreter=/usr/bin/python3
 
     [app]
-    APP_EC2 ansible_host=\${APP_IP} ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+    APP_EC2 ansible_host=${appIp} ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
 
     [db]
-    DB_EC2 ansible_host=\${DB_IP} ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
+    DB_EC2 ansible_host=${dbIp} ansible_ssh_common_args='-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null'
     EOL
-            """
-          }
+          """
         }
       }
     }
