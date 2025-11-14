@@ -180,6 +180,15 @@ pipeline {
     }
 
     stage('Fetch Terraform Outputs') {
+      when {
+        allOf {
+          expression { !env.CHANGE_ID }
+          anyOf {
+            branch 'develop'
+            branch 'main'
+          }
+        }
+      }
       steps {
         script {
           withAWS(credentials: 'aws-credentials', region: 'us-east-1') {
@@ -196,6 +205,15 @@ pipeline {
     }
 
     stage('Generate Ansible Inventory') {
+      when {
+        allOf {
+          expression { !env.CHANGE_ID }
+          anyOf {
+            branch 'develop'
+            branch 'main'
+          }
+        }
+      }
       steps {
         script {
           def appIp = readFile("${WORKSPACE}/ansible/app_ip.txt").trim()
